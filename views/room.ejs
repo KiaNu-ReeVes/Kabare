@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>اتاق <%= roomId %></title>
+    <style>
+        :root {
+            color-scheme: dark;
+            color: #f3f5fc;
+            background: #050609;
+            font-family: 'Rubik', sans-serif;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            background: radial-gradient(circle at top right, rgba(0,96,255,0.18), transparent 26%),
+                        linear-gradient(180deg, #0b0e14 0%, #050609 100%);
+            color: #f3f5fc;
+        }
+
+        .sidebar,
+        .chat-area {
+            min-height: 0;
+            min-width: 0;
+        }
+
+        .sidebar {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            box-shadow: 0 24px 50px rgba(0,0,0,0.25);
+            backdrop-filter: blur(14px);
+            margin: 24px;
+            overflow: hidden;
+        }
+
+        .room-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .room-header h3 {
+            margin: 0;
+            font-size: 1.15rem;
+            color: #ffffff;
+            letter-spacing: 0.02em;
+        }
+
+        .user-list {
+            flex: 1;
+            min-height: 0;
+            list-style: none;
+            padding: 16px;
+            margin: 0;
+            overflow-y: auto;
+            display: grid;
+            gap: 10px;
+        }
+
+        .user-list li {
+            max-height: 60px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .user-list li:hover {
+            background: rgba(0,96,255,0.14);
+            transform: translateY(-1px);
+        }
+
+        .user-name {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #0060ff 0%, #00d3ff 100%);
+            border-radius: 50%;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.12);
+        }
+
+        .user-status {
+            margin-left: 6px;
+            font-size: 0.95em;
+            color: #f3f5fc;
+        }
+
+        .user-status.muted { color: #f8687c; }
+        .user-status.deafened { color: #f5b041; }
+
+        .control-panel {
+            background: rgba(255,255,255,0.05);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .my-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            color: #f3f5fc;
+            margin: 0;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 12px;
+            cursor: pointer;
+            border: none;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            color: #f3f5fc;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-mute,
+        .btn-deafen,
+        .btn-webcam,
+        .btn-share {
+            background: rgba(255,255,255,0.08);
+            color: #f3f5fc;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+        }
+
+        .btn-mute.active,
+        .btn-deafen.active {
+            background: #ed4245;
+            box-shadow: 0 16px 32px rgba(237,66,69,0.18);
+        }
+
+        .btn-webcam.active,
+        .btn-share.active {
+            background: #43b581;
+            box-shadow: 0 16px 32px rgba(67,181,129,0.2);
+        }
+
+        .chat-area {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            margin: 24px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 28px;
+            box-shadow: 0 28px 60px rgba(0,0,0,0.28);
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        #video-container {
+            position: relative;
+            background: rgba(255,255,255,0.03);
+            padding: 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+            width: 100%;
+            justify-items: center;
+        }
+
+        .video-item {
+            width: 100%;
+            max-width: 360px;
+            aspect-ratio: 16 / 9;
+            background: #0b111a;
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .video-item.local-video {
+            border-color: #0060ff;
+        }
+
+        .video-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .video-item.screen-share video {
+            object-fit: contain;
+        }
+
+        .video-username {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(5, 8, 24, 0.85);
+            color: #f3f5fc;
+            padding: 6px 12px;
+            border-radius: 14px;
+            font-size: 0.85rem;
+        }
+
+        #fullscreenBtn {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: rgba(0,96,255,0.24);
+            border: none;
+            color: #f3f5fc;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 10px 14px;
+            border-radius: 16px;
+            z-index: 2100;
+            user-select: none;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        #fullscreenBtn:hover {
+            background: rgba(0,96,255,0.34);
+            transform: translateY(-1px);
+        }
+
+        .chat-messages {
+            flex: 1;
+            min-height: 0;
+            padding: 22px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .msg-header {
+            font-weight: 700;
+            margin-bottom: 0;
+            color: #f3f5fc;
+        }
+
+        .msg-system {
+            color: #b9bfd4;
+            font-style: italic;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .chat-input-wrapper {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 16px 18px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            color: #f3f5fc;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .chat-input:focus {
+            border-color: rgba(0,96,255,0.55);
+            background: rgba(255,255,255,0.08);
+        }
+
+        #audio-container { display: none; }
+
+        #video-container:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #video-container:fullscreen #videoGrid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-auto-rows: min-content;
+            gap: 10px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        #video-container:fullscreen .video-item {
+            width: 100%;
+            max-width: none;
+            aspect-ratio: 16 / 9;
+            max-width: 100%;
+        }
+
+        #video-container:fullscreen #fullscreenBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="room-header">
+            <h3>اتاق صوتی: <%= roomId %></h3>
+        </div>
+        <ul id="users" class="user-list"></ul>
+        
+        <div class="control-panel">
+            <div class="my-info">
+                <div class="avatar"></div>
+                <span><%= username %></span>
+            </div>
+            <div class="buttons">
+                <button class="btn btn-webcam" id="webcamBtn" onclick="toggleWebcam()">دوربین (خاموش)</button>
+                <button class="btn btn-share" id="shareScreenBtn" onclick="toggleScreenShare()">اشتراک صفحه</button>
+                <button class="btn btn-mute" id="muteBtn" onclick="toggleMute()">میکروفون (باز)</button>
+                <button class="btn btn-deafen" id="deafenBtn" onclick="toggleDeafen()">صدا (روشن)</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-area">
+            <div id="video-container">
+                <div class="video-grid" id="videoGrid"></div>
+        <button id="fullscreenBtn" title="تمام صفحه کن">⛶</button>
+            </div>
+        <div class="chat-messages" id="chat-messages">
+            <!-- پیام ها اینجا قرار میگیرند -->
+        </div>
+        <div class="chat-input-wrapper">
+            <input type="text" id="chatInput" class="chat-input" placeholder="پیام خود را بنویسید و Enter بزنید..." onkeypress="handleKeyPress(event)">
+        </div>
+    </div>
+
+    <div id="audio-container"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+const roomId = "<%= roomId %>";
+const username = "<%= username %>";
+
+let localStream;
+let localVideoStream = null;
+let screenStream = null;
+let isScreenSharing = false;
+let isWebcamEnabled = false;
+
+const peers = {};
+const audioContainer = document.getElementById('audio-container');
+const videoContainer = document.getElementById('video-container');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const videoGrid = document.getElementById('videoGrid');
+
+let currentUsers = [];
+const userStatuses = {};
+let chatPageSize = 25;
+let isLoadingHistory = false;
+let hasMoreHistory = true;
+let earliestChatCreatedAt = null;
+
+const configuration = {
+    iceServers: [
+        { urls: 'stun:185.221.193.42:3478' },
+        { urls: 'turn:185.221.193.42:3478', username: 'myuser', credential: 'mypassword' }
+    ]
+};
+
+navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then(stream => {
+    localStream = stream;
+    socket.emit('joinRoom', { username, room: roomId });
+}).catch(err => {
+    alert('لطفا اجازه دسترسی به میکروفون را بدهید!');
+    console.error(err);
+});
+
+socket.on('roomUsers', (users) => {
+    currentUsers = users;
+    renderUserList(users);
+});
+
+socket.on('roomMediaState', (state) => {
+    if (state && state.statuses) {
+        Object.keys(state.statuses).forEach(id => {
+            userStatuses[id] = state.statuses[id];
+        });
+        renderUserList(currentUsers);
+    }
+});
+
+socket.on('user-status-changed', (data) => {
+    userStatuses[data.userId] = { muted: data.muted, deafened: data.deafened };
+    renderUserList(currentUsers);
+});
+
+function handleKeyPress(e) {
+    if (e.key === 'Enter' && e.target.value.trim() !== '') {
+        socket.emit('chatMessage', e.target.value);
+        e.target.value = '';
+    }
+}
+
+socket.on('chatMessage', (data) => {
+    const chatBox = document.getElementById('chat-messages');
+    const atBottom = chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 80;
+    const div = document.createElement('div');
+
+    if (data.type === 'system') {
+        div.className = 'msg-system';
+        div.innerText = data.text;
+    } else {
+        div.className = 'message';
+        div.innerHTML = `<span class="msg-header">${data.user}</span><span>${data.text}</span>`;
+    }
+
+    chatBox.appendChild(div);
+    if (atBottom) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+});
+
+let isMuted = false;
+let isDeafened = false;
+
+function setMuteState(state, notify = false) {
+    if (!localStream) return;
+    if (!state && isDeafened) return;
+    isMuted = state;
+    localStream.getAudioTracks()[0].enabled = !isMuted;
+    const btn = document.getElementById('muteBtn');
+    btn.innerText = isMuted ? "میکروفون (بسته)" : "میکروفون (باز)";
+    btn.classList.toggle('active', isMuted);
+    if (notify) {
+        sendStatusUpdate();
+    }
+}
+
+function setDeafenState(state) {
+    isDeafened = state;
+    const audios = audioContainer.querySelectorAll('audio');
+    audios.forEach(audio => audio.muted = isDeafened);
+
+    const btn = document.getElementById('deafenBtn');
+    btn.innerText = isDeafened ? "صدا (بسته)" : "صدا (روشن)";
+    btn.classList.toggle('active', isDeafened);
+
+    if (isDeafened) {
+        setMuteState(true, false);
+    } else {
+        setMuteState(false, false);
+    }
+    sendStatusUpdate();
+}
+
+function toggleMute() {
+    if (localStream) {
+        setMuteState(!isMuted, true);
+    }
+}
+
+function toggleDeafen() {
+    setDeafenState(!isDeafened);
+}
+
+function sendStatusUpdate() {
+    userStatuses[socket.id] = { muted: isMuted, deafened: isDeafened };
+    renderUserList(currentUsers);
+    socket.emit('status-changed', { userId: socket.id, muted: isMuted, deafened: isDeafened });
+}
+
+function renderUserList(users) {
+    const usersList = document.getElementById('users');
+    usersList.innerHTML = users.map(u => {
+        const status = userStatuses[u.id] || {};
+        const badge = status.deafened ? '<span class="user-status deafened" title="Deafened">🛇</span>' : status.muted ? '<span class="user-status muted" title="Muted">🔇</span>' : '';
+        return `<li data-id="${u.id}"><div class="avatar"></div><span class="user-name">${u.username}${u.id === socket.id ? ' (شما)' : ''}</span>${badge}</li>`;
+    }).join('');
+}
+
+// تابع تبدیل وبکم
+async function toggleWebcam() {
+    if (!isWebcamEnabled) {
+        try {
+            localVideoStream = await navigator.mediaDevices.getUserMedia({
+    video: {
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        aspectRatio: 16/9
+    },
+    audio: false
+});
+            isWebcamEnabled = true;
+
+            // نمایش ویدئو محلی
+            displayLocalVideo();
+
+            // ارسال ویدئو به کاربران دیگر
+            addVideoTracks();
+            await negotiateAllPeers();
+
+            const btn = document.getElementById('webcamBtn');
+            btn.innerText = "دوربین (روشن)";
+            btn.classList.add('active');
+
+            localVideoStream.getVideoTracks()[0].onended = () => {
+                stopWebcam();
+            };
+
+            videoContainer.classList.add('active');
+
+            socket.emit('webcam-enabled', { userId: socket.id, username: username });
+
+        } catch (error) {
+            alert('مشکل در دسترسی به دوربین!');
+            console.error(error);
+        }
+    } else {
+        await stopWebcam();
+    }
+}
+
+async function stopWebcam() {
+    if (!isWebcamEnabled) return;
+
+    if (localVideoStream) {
+        localVideoStream.getTracks().forEach(track => track.stop());
+        localVideoStream = null;
+    }
+
+    isWebcamEnabled = false;
+    removeVideoTracks();
+
+    const btn = document.getElementById('webcamBtn');
+    btn.innerText = "دوربین (خاموش)";
+    btn.classList.remove('active');
+
+    const localVideo = document.getElementById('local-video');
+    if (localVideo) localVideo.remove();
+
+    if (videoGrid.children.length === 0) {
+        videoContainer.classList.remove('active');
+    }
+
+    await negotiateAllPeers();
+    socket.emit('webcam-disabled', { userId: socket.id });
+}
+
+function displayLocalVideo() {
+    // حذف ویدئو قدیم اگر وجود داشته باشد
+    const oldVideo = document.getElementById('local-video');
+    if (oldVideo) oldVideo.remove();
+
+    const videoItem = document.createElement('div');
+    videoItem.className = 'video-item local-video';
+    videoItem.id = 'local-video';
+
+    const video = document.createElement('video');
+    video.srcObject = localVideoStream;
+    video.autoplay = true;
+    video.muted = true;
+    video.playsinline = true;
+
+    const username_label = document.createElement('div');
+    username_label.className = 'video-username';
+    username_label.innerText = username + ' (شما)';
+
+    videoItem.appendChild(video);
+    videoItem.appendChild(username_label);
+    videoGrid.insertBefore(videoItem, videoGrid.firstChild);
+}
+
+function addVideoTracks() {
+    for (let peerId in peers) {
+        if (localVideoStream && localVideoStream.getVideoTracks().length > 0) {
+            const videoTrack = localVideoStream.getVideoTracks()[0];
+            peers[peerId].addTrack(videoTrack, localVideoStream);
+        }
+    }
+}
+
+function removeVideoTracks() {
+    for (let peerId in peers) {
+        const senders = peers[peerId].getSenders();
+        const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+        if (videoSender) {
+            if (peerId && peers[peerId].removeTrack) {
+                peers[peerId].removeTrack(videoSender);
+            } else {
+                videoSender.replaceTrack(null).catch(e => console.error(e));
+            }
+        }
+    }
+}
+
+async function negotiatePeer(peerId) {
+    const peer = peers[peerId];
+    if (!peer) return;
+    try {
+        const offer = await peer.createOffer();
+        await peer.setLocalDescription(offer);
+        socket.emit('offer', { target: peerId, caller: socket.id, sdp: peer.localDescription });
+    } catch (error) {
+        console.error('خطا در renegotiate کردن با peer:', error);
+    }
+}
+
+async function negotiateAllPeers() {
+    await Promise.all(Object.keys(peers).map(negotiatePeer));
+}
+async function toggleScreenShare() {
+    if (!isScreenSharing) {
+        try {
+
+            screenStream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: false
+            });
+
+            isScreenSharing = true;
+
+            const btn = document.getElementById('shareScreenBtn');
+            btn.innerText = "قطع اشتراک صفحه";
+            btn.classList.add('active');
+
+            const track = screenStream.getVideoTracks()[0];
+
+            track.onended = () => {
+                stopScreenShare();
+            };
+
+            // نمایش محلی در grid
+            displayLocalScreen(screenStream);
+
+            replaceVideoTracks(screenStream);
+            await negotiateAllPeers();
+
+        } catch (err) {
+            alert("اجازه اشتراک صفحه داده نشد");
+            console.error(err);
+        }
+    } else {
+        stopScreenShare();
+    }
+}
+function displayLocalScreen(stream) {
+
+    const old = document.getElementById("local-screen");
+    if (old) old.remove();
+
+    const videoItem = document.createElement("div");
+    videoItem.className = "video-item";
+    videoItem.id = "local-screen";
+    videoItem.dataset.user = socket.id;
+    videoItem.dataset.type = "screen";
+
+    const video = document.createElement("video");
+    video.srcObject = stream;
+    video.autoplay = true;
+    video.muted = true;
+    video.playsinline = true;
+
+    const label = document.createElement("div");
+    label.className = "video-username";
+    label.innerText = username + " (اشتراک صفحه)";
+
+    videoItem.appendChild(video);
+    videoItem.appendChild(label);
+
+    videoGrid.appendChild(videoItem);
+    videoContainer.classList.add("active");
+}
+
+async function stopScreenShare() {
+
+    if (!isScreenSharing) return;
+
+    if (screenStream) {
+        screenStream.getTracks().forEach(t => t.stop());
+        screenStream = null;
+    }
+
+    const item = document.getElementById("local-screen");
+    if (item) item.remove();
+
+    replaceVideoTracks(null);
+    await negotiateAllPeers();
+
+    isScreenSharing = false;
+
+    const btn = document.getElementById('shareScreenBtn');
+    btn.innerText = "اشتراک صفحه";
+    btn.classList.remove('active');
+}
+
+
+function replaceVideoTracks(newStream) {
+    for (let peerId in peers) {
+        const senders = peers[peerId].getSenders();
+        const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+        if (videoSender) {
+            if (newStream && newStream.getVideoTracks().length > 0) {
+                videoSender.replaceTrack(newStream.getVideoTracks()[0]).catch(e => console.error(e));
+            } else {
+                videoSender.replaceTrack(null).catch(e => console.error(e));
+            }
+        } else {
+            if (newStream && newStream.getVideoTracks().length > 0) {
+                peers[peerId].addTrack(newStream.getVideoTracks()[0]);
+            }
+        }
+    }
+}
+
+socket.on('user-joined', async (newUserId) => {
+    const peer = createPeerConnection(newUserId);
+    const offer = await peer.createOffer();
+    await peer.setLocalDescription(offer);
+    socket.emit('offer', { target: newUserId, caller: socket.id, sdp: peer.localDescription });
+});
+
+function createChatMessageElement(data) {
+    const div = document.createElement('div');
+    div.className = data.type === 'system' ? 'msg-system' : 'message';
+
+    if (data.type === 'system') {
+        div.innerText = data.text;
+    } else {
+        div.innerHTML = `<span class="msg-header">${data.username}</span><span>${data.text}</span>`;
+    }
+    return div;
+}
+
+function appendChatMessages(messages) {
+    const chatBox = document.getElementById('chat-messages');
+    messages.forEach(data => {
+        const div = createChatMessageElement(data);
+        chatBox.appendChild(div);
+    });
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function prependChatMessages(messages) {
+    const chatBox = document.getElementById('chat-messages');
+    const previousScrollHeight = chatBox.scrollHeight;
+    messages.forEach(data => {
+        const div = createChatMessageElement(data);
+        chatBox.insertBefore(div, chatBox.firstChild);
+    });
+    chatBox.scrollTop = chatBox.scrollHeight - previousScrollHeight;
+}
+
+function loadOlderChatMessages() {
+    if (!hasMoreHistory || isLoadingHistory || !earliestChatCreatedAt) return;
+    isLoadingHistory = true;
+    socket.emit('loadChatHistory', { room: roomId, beforeCreatedAt: earliestChatCreatedAt, limit: chatPageSize });
+}
+
+socket.on('chatHistory', ({ messages, hasMore }) => {
+    const chatBox = document.getElementById('chat-messages');
+    chatBox.innerHTML = '';
+    appendChatMessages(messages);
+    earliestChatCreatedAt = messages.length ? messages[0].created_at : null;
+    hasMoreHistory = hasMore;
+    isLoadingHistory = false;
+
+    chatBox.addEventListener('scroll', () => {
+        if (chatBox.scrollTop <= 100 && hasMoreHistory && !isLoadingHistory) {
+            loadOlderChatMessages();
+        }
+    });
+});
+
+socket.on('chatHistoryPage', ({ messages, hasMore }) => {
+    if (messages && messages.length) {
+        prependChatMessages(messages);
+        earliestChatCreatedAt = messages[0].created_at;
+    }
+    hasMoreHistory = hasMore;
+    isLoadingHistory = false;
+});
+
+socket.on('offer', async (incoming) => {
+    const peer = createPeerConnection(incoming.caller);
+    await peer.setRemoteDescription(new RTCSessionDescription(incoming.sdp));
+    const answer = await peer.createAnswer();
+    await peer.setLocalDescription(answer);
+    socket.emit('answer', { target: incoming.caller, caller: socket.id, sdp: peer.localDescription });
+});
+
+socket.on('answer', async (incoming) => {
+    const peer = peers[incoming.caller];
+    if (peer) {
+        await peer.setRemoteDescription(new RTCSessionDescription(incoming.sdp));
+    }
+});
+
+socket.on('ice-candidate', (candidate, callerId) => {
+    if (peers[callerId]) {
+        peers[callerId].addIceCandidate(new RTCIceCandidate(candidate)).catch(e => console.error(e));
+    }
+});
+
+socket.on('user-disconnected', (userId) => {
+    if (peers[userId]) {
+        peers[userId].close();
+        delete peers[userId];
+    }
+    const audioElement = document.getElementById(`audio-${userId}`);
+    if (audioElement) audioElement.remove();
+
+    const videoItems = videoGrid.querySelectorAll(`[data-user="${userId}"]`);
+    videoItems.forEach(item => item.remove());
+
+    if (videoGrid.children.length === 0) {
+        videoContainer.classList.remove('active');
+    }
+
+    if (userId === currentScreenSharerId) {
+        clearScreenShare();
+    }
+});
+
+function createPeerConnection(userId) {
+    const peer = new RTCPeerConnection(configuration);
+    peers[userId] = peer;
+
+    if(localStream) {
+        localStream.getAudioTracks().forEach(track => peer.addTrack(track, localStream));
+    }
+
+    // اضافه کردن ویدئو اگر فعال باشد
+    if (isWebcamEnabled && localVideoStream) {
+        localVideoStream.getVideoTracks().forEach(track => peer.addTrack(track, localVideoStream));
+    }
+
+    if (isScreenSharing && screenStream) {
+        screenStream.getVideoTracks().forEach(track => peer.addTrack(track, screenStream));
+    }
+
+    peer.onicecandidate = (event) => {
+        if (event.candidate) {
+            socket.emit('ice-candidate', { target: userId, candidate: event.candidate });
+        }
+    };
+
+    peer.ontrack = (event) => {
+        if (event.track.kind === 'video') {
+            const isScreenShare = /screen/i.test(event.track.label || '');
+            displayRemoteVideo(event.streams[0], userId, isScreenShare);
+        } else if (event.track.kind === 'audio') {
+            let audioElement = document.getElementById(`audio-${userId}`);
+            if (!audioElement) {
+                audioElement = document.createElement('audio');
+                audioElement.id = `audio-${userId}`;
+                audioElement.autoplay = true;
+                audioElement.muted = isDeafened;
+                audioContainer.appendChild(audioElement);
+            }
+            audioElement.srcObject = event.streams[0];
+        }
+    };
+
+    return peer;
+}
+
+function displayRemoteVideo(stream, userId, isScreenShare) {
+    const streamId = stream.id || Math.random().toString(36).slice(2);
+    const itemId = `video-${userId}-${streamId}`;
+    let videoItem = document.getElementById(itemId);
+
+    if (!videoItem) {
+        videoItem = document.createElement('div');
+        videoItem.className = `video-item ${isScreenShare ? 'screen-share' : 'webcam'}`;
+        videoItem.id = itemId;
+        videoItem.dataset.user = userId;
+        videoItem.dataset.type = isScreenShare ? 'screen-share' : 'webcam';
+
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.playsinline = true;
+        video.srcObject = stream;
+
+        const username_label = document.createElement('div');
+        username_label.className = 'video-username';
+        username_label.id = `video-${userId}-${streamId}-name`;
+        username_label.innerText = 'کاربر ناشناخته';
+
+        videoItem.appendChild(video);
+        videoItem.appendChild(username_label);
+        videoGrid.appendChild(videoItem);
+
+        updateRemoteUsername(userId, itemId, isScreenShare);
+        videoContainer.classList.add('active');
+    } else {
+        const video = videoItem.querySelector('video');
+        if (video) {
+            video.srcObject = stream;
+        }
+    }
+}
+
+function updateRemoteUsername(userId, itemId, isScreenShare) {
+    const usersList = document.getElementById('users').children;
+    let usernameLabel = 'کاربر ناشناخته';
+
+    for (let li of usersList) {
+        if (li.dataset.id === userId) {
+            usernameLabel = li.textContent.replace('(شما)', '').trim();
+            break;
+        }
+    }
+
+    const nameLabel = document.getElementById(itemId ? `${itemId}-name` : `video-${userId}-name`);
+    if (nameLabel) {
+        nameLabel.innerText = `${usernameLabel}${isScreenShare ? ' (اشتراک صفحه)' : ''}`;
+    }
+}
+
+let currentScreenSharerId = null;
+
+
+socket.on('webcam-enabled', (data) => {
+    if (data.userId === socket.id) return;
+});
+
+socket.on('webcam-disabled', (data) => {
+    removeRemoteVideoItems(data.userId, 'webcam');
+});
+
+function removeRemoteVideoItems(userId, type) {
+    const videoItems = videoGrid.querySelectorAll(`[data-user="${userId}"][data-type="${type}"]`);
+    videoItems.forEach(item => item.remove());
+    if (videoGrid.children.length === 0) {
+        videoContainer.classList.remove('active');
+    }
+}
+
+fullscreenBtn.addEventListener('click', () => {
+    // اگر در حالت تمام‌صفحه نیست، درخواست تمام‌صفحه برای کانتینر بده
+    if (!document.fullscreenElement) {
+        if (videoContainer.requestFullscreen) {
+            videoContainer.requestFullscreen();
+        }
+    } else {
+        // اگر در حالت تمام‌صفحه هست، خارج شو
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+});
+
+document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) {
+        fullscreenBtn.innerText = "⛶";
+    } else {
+        fullscreenBtn.innerText = "⛶";
+    }
+});
+    </script>
+
+</body>
+</html>

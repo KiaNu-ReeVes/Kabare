@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به چت صوتی</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: Tahoma, sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(0,96,255,.25), transparent 35%),
+                linear-gradient(180deg, #0b0e14, #050609);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .login-box {
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.1);
+            backdrop-filter: blur(18px);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 24px 60px rgba(0,0,0,.35);
+            text-align: center;
+            width: min(380px, calc(100% - 32px));
+        }
+        h2 { margin-top: 0; }
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 9px 0;
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 12px;
+            background: #12151c;
+            color: white;
+            font-family: inherit;
+            outline: none;
+        }
+        input:focus { border-color: #0060ff; }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #0060ff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 16px;
+            margin-top: 12px;
+        }
+        button:hover { background: #0754d5; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>ورود به ویس چنل</h2>
+        <input type="text" id="username" placeholder="نام شما (مثال: علی)" maxlength="50">
+        <input type="text" id="roomName" placeholder="نام اتاق (مثال: room1)" maxlength="100">
+        <button onclick="joinRoom()">ورود</button>
+    </div>
+
+    <script>
+        function joinRoom() {
+            const user = document.getElementById('username').value.trim();
+            const room = document.getElementById('roomName').value.trim();
+
+            if (!user || !room) {
+                alert('لطفا نام و نام اتاق را وارد کنید.');
+                return;
+            }
+
+            window.location.href =
+                `/room/${encodeURIComponent(room)}?user=${encodeURIComponent(user)}`;
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter') joinRoom();
+        });
+    </script>
+</body>
+</html>
